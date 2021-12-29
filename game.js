@@ -25,14 +25,19 @@ class Game {
     }
 
     // Marks the cell with the given ID with the given symbol
-    markBoard(cellID, symbol) {
+    markBoard(symbol, cellID) {
+        cellID--;
         let row = Math.floor(cellID / 3);
         let col = cellID % 3;
         this.board[row][col] = symbol;
     }
 
     // Checks if the given symbol has won the game
-    checkWin(symbol, row, col) {
+    checkWin(symbol, cellID) {
+        cellID--;
+        let row = Math.floor(cellID / 3);
+        let col = cellID % 3;
+
         // Check row
         if (this.board[row][0] == symbol && this.board[row][1] == symbol && this.board[row][2] == symbol)
             return true;
@@ -61,6 +66,12 @@ class Game {
         }
 
         return true;
+    }
+
+    // Restarts the game
+    restart() {
+        this.board = [[null, null, null], [null, null, null], [null, null, null]];
+        this.turn = 1;
     }
 }
 

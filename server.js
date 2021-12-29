@@ -42,6 +42,7 @@ io.on('connection', socket => {
 
     // TODO: Handle user disconnecting from game
     // TODO: Handle user reconnecting to game
+    // TODO: Handle another user joining after one has left
     // TODO: Add types to arguments
     // TODO: Handle wrong user clicking on cell
 
@@ -81,7 +82,28 @@ io.on('connection', socket => {
     socket.on('play-turn', data => {
         // If it is player 1's turn
         if (games[data.roomID].turn == 1 && games[data.roomID].playerOne.socketID == data.socketID) {
+            games[data.roomID].markBoard("X", data.cellID);
             games[data.roomID].turn = 2;
+
+            // Checking if game is over
+            if (games[data.roomID].checkWin(games[data.roomID].playerOne.symbol, data.cellID)) {
+                socket.to(data.roomID).emit('game-over', {
+                    winner: games[data.roomID].playerOne.name,
+                    socketID: data.socketID
+                });
+
+                socket.emit('game-over', {
+                    winner: games[data.roomID].playerOne.name,
+                    socketID: data.socketID
+                });
+
+                return;
+            }
+            else if (games[data.roomID].checkDraw()) {
+                socket.to(data.roomID).emit('game-over', { winner: "Draw" });
+                socket.emit('game-over', { winner: "Draw" });
+                return;
+            }
 
             socket.to(data.roomID).emit('turn-played', {
                 turn: 2,
@@ -97,7 +119,29 @@ io.on('connection', socket => {
         }
         // If it is player 2's turn
         else if (games[data.roomID].turn == 2 && games[data.roomID].playerTwo.socketID == data.socketID) {
+            games[data.roomID].markBoard("O", data.cellID);
             games[data.roomID].turn = 1;
+
+            // Checking if game is over
+            if (games[data.roomID].checkWin(games[data.roomID].playerTwo.symbol, data.cellID)) {
+                socket.to(data.roomID).emit('game-over', {
+                    winner: games[data.roomID].playerTwo.name,
+                    socketID: data.socketID
+                });
+
+                socket.emit('game-over', {
+                    winner: games[data.roomID].playerTwo.name,
+                    socketID: data.socketID
+                });
+
+                return;
+            }
+            else if (games[data.roomID].checkDraw()) {
+                socket.to(data.roomID).emit('game-over', { winner: "Draw" });
+                socket.emit('game-over', { winner: "Draw" });
+                return;
+            }
+
             socket.to(data.roomID).emit('turn-played', {
                 turn: 1,
                 cellID: data.cellID,
@@ -110,6 +154,11 @@ io.on('connection', socket => {
                 symbol: games[data.roomID].playerTwo.symbol
             });
         }
+    });
+
+    // Restarting the game
+    socket.on('restart-game', data => {
+        games[data.roomID].restart();
     });
 });
 

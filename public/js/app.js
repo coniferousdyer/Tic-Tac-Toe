@@ -14,6 +14,7 @@ const socket = io();
 const titleScreen = $("#title-screen");
 const waitingScreen = $("#waiting-screen");
 const gameScreen = $("#game-screen");
+const gameOverScreen = $("#game-over-screen");
 
 // Important global variables
 let previousScreen = "";
@@ -24,6 +25,8 @@ let previousScreen = "";
 $("#create-button").click(createGame);
 $("#join-button").click(joinGame);
 $(".game-board-cell").click(playTurn);
+$("#restart-button").click(restartGame);
+$("#main-menu-button").click(backToMainMenu);
 
 // Setting up event listeners
 socket.on('connect', () => { previousScreen = titleScreen; })
@@ -32,6 +35,7 @@ socket.on("room-unavailable", message => { alert(message); });
 socket.on('player-one-joined', playerOneJoined);
 socket.on('player-two-joined', playerTwoJoined);
 socket.on('turn-played', turnPlayed);
+socket.on("game-over", gameOver);
 
 //-----------DOM LISTENER FUNCTIONS-----------//
 
@@ -77,6 +81,14 @@ function playTurn(event) {
     const roomID = $("#gameroom-id").html().split(" ")[2];
 
     socket.emit("play-turn", { socketID: socket.id, roomID: roomID, cellID: cellID });
+}
+
+function restartGame() {
+    socket.emit("restart-game", { socketID: socket.id });
+}
+
+function backToMainMenu() {
+    socket.emit("back-to-main-menu", { socketID: socket.id });
 }
 
 //-----------EVENT LISTENER FUNCTIONS-----------//
@@ -125,5 +137,27 @@ function turnPlayed(data) {
     else {
         $("#player-one-name").css({ "background-color": "transparent", "color": "black" });
         $("#player-two-name").css({ "background-color": "green", "color": "white" });
+    }
+}
+
+// Displaying the winner
+function gameOver(data) {
+    previousScreen.css("display", "none");
+    gameOverScreen.css("display", "flex");
+    previousScreen = gameOverScreen;
+
+    if (data.winner == "Draw") {
+        $("#game-over-heading").html("It's a draw!");
+        $("#game-over-message").html("Don't worry, you can always play again!");
+    }
+    else if (socket.id == data.socketID) {
+        $("#game-over-heading").html("You win!");
+        $("#game-over-heading").css("color", "green");
+        $("#game-over-message").html("Well done, champ!");
+    }
+    else {
+        $("#game-over-heading").html(`${data.winner} wins!`);
+        $("#game-over-heading").css("color", "red");
+        $("#game-over-message").html("Better luck next time!");
     }
 }
