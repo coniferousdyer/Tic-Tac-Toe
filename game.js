@@ -24,6 +24,17 @@ class Game {
         this.board = [[null, null, null], [null, null, null], [null, null, null]];
     }
 
+    // Clears the game board
+    clearBoard() {
+        this.board = [[null, null, null], [null, null, null], [null, null, null]];
+    }
+
+    // Resets the game
+    resetGame() {
+        this.clearBoard();
+        this.turn = 1;
+    }
+
     // Marks the cell with the given ID with the given symbol
     markBoard(symbol, cellID) {
         cellID--;

@@ -38,14 +38,13 @@ io.on('connection', socket => {
     console.log("New client connected!");
 
     // If a client disconnects
-    socket.on('disconnect', () => { console.log("Client disconnected!"); });
+    socket.on('disconnect', () => {
+        console.log("Client disconnected!");
+        let roomID = getRoomID(socket.id);
 
-    // TODO: Handle user disconnecting from game
-    // TODO: Handle user reconnecting to game
-    // TODO: Handle another user joining after one has left
-    // TODO: Add types to arguments
-    // TODO: Handle wrong user clicking on cell
-    // TODO: Add feature to restart game
+        if (roomID)
+            updateGame(socket.id, roomID);
+    });
 
     // Creating a new game
     socket.on('create-game', data => {
@@ -61,19 +60,19 @@ io.on('connection', socket => {
     socket.on('join-game', data => {
         // Checking if room with entered ID exists
         if (!(data.roomID in games)) {
-            socket.emit("room-unavailable", `Room with ID ${data.roomID} does not exist.`);
+            socket.emit("alert-user", `Room with ID ${data.roomID} does not exist.`);
             return;
         }
 
         // Checking if room is full
-        if (games[data.roomID].playerTwo != null) {
-            socket.emit("room-unavailable", `Room with ID ${data.roomID} is full.`);
+        if (games[data.roomID].playerTwo) {
+            socket.emit("alert-user", `Room with ID ${data.roomID} is full.`);
             return;
         }
 
         socket.join(data.roomID);
-        let player = new game.Player(socket.id, data.playerName, "O");
-        games[data.roomID].playerTwo = player;
+        games[data.roomID].resetGame();
+        games[data.roomID].playerTwo = new game.Player(socket.id, data.playerName, "O");
 
         socket.emit('player-one-joined', { playerName: games[data.roomID].playerOne.name, roomID: data.roomID });
         socket.to(data.roomID).emit('player-two-joined', { playerName: data.playerName, roomID: data.roomID });
@@ -159,30 +158,15 @@ io.on('connection', socket => {
                 symbol: games[data.roomID].playerTwo.symbol
             });
         }
+        else
+            socket.emit("alert-user", "It is not your turn!");
     });
 
     // When a player goes back to the main menu
-    socket.on("back-to-main-menu", data => {
-        socket.leave(data.roomID);
-
-        if (games[data.roomID].playerOne && games[data.roomID].playerTwo) {
-            if (games[data.roomID].playerOne.socketID == data.socketID)
-                games[data.roomID].playerOne = null;
-            else
-                games[data.roomID].playerTwo = null;
-        }
-        else if (games[data.roomID].playerOne) {
-            if (games[data.roomID].playerOne.socketID == data.socketID)
-                games[data.roomID].playerOne = null;
-
-            delete games[data.roomID];
-        }
-        else if (games[data.roomID].playerTwo) {
-            if (games[data.roomID].playerTwo.socketID == data.socketID)
-                games[data.roomID].playerTwo = null;
-
-            delete games[data.roomID];
-        }
+    socket.on("back-to-main-menu", () => {
+        let roomID = getRoomID(socket.id);
+        socket.leave(roomID);
+        updateGame(socket.id, roomID);
 
         socket.emit("return-to-main-menu");
     });
@@ -199,4 +183,27 @@ function makeid(length) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
 
     return result;
+}
+
+// Function that gets the room ID of a socket
+function getRoomID(socketID) {
+    return Object.keys(games).find(
+        roomID => (games[roomID].playerOne && games[roomID].playerOne.socketID == socketID)
+            || (games[roomID].playerTwo && games[roomID].playerTwo.socketID == socketID)
+    );
+}
+
+// Function that performs end-game cleanup
+function updateGame(socketID, roomID) {
+    if (games[roomID].playerOne && games[roomID].playerTwo) {
+        if (games[roomID].playerOne.socketID == socketID) {
+            games[roomID].playerOne.socketID = games[roomID].playerTwo.socketID;
+            games[roomID].playerOne.name = games[roomID].playerTwo.name;
+            games[roomID].playerTwo = null;
+        }
+        else
+            games[roomID].playerTwo = null;
+    }
+    else if (games[roomID].playerOne)
+        delete games[roomID];
 }

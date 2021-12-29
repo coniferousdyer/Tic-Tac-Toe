@@ -10,6 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;900&family=Roboto:wght@300&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <title>Tic-Tac-Toe</title>
 </head>
@@ -20,15 +24,16 @@
         <div id="title-screen">
             <h1 id="heading">TIC-TAC-TOE</h1>
             <input type="text" id="player-name" placeholder="Enter username" maxlength="10">
-            <button id="create-button" class="btn btn-primary">Create Game</button>
+            <button id="create-button" class="btn btn-primary">CREATE GAME</button>
             <input type="text" id="room-id" placeholder="Enter room ID">
-            <button id="join-button" class="btn btn-primary">Join Game</button>
+            <button id="join-button" class="btn btn-primary">JOIN GAME</button>
         </div>
 
         <!-- Waiting screen -->
         <div id="waiting-screen">
             <h1 id="waiting-heading">Waiting for player 2...</h1>
             <div id="room-id-display"></div>
+            <button class="main-menu-button btn btn-primary">BACK TO MAIN MENU</button>
         </div>
 
         <!-- Game screen -->
@@ -55,15 +60,13 @@
                     <div class="col-3 game-board-cell" id="box-9"></div>
                 </div>
             </div>
+            <button class="main-menu-button btn btn-primary">BACK TO MAIN MENU</button>
         </div>
 
         <div id="game-over-screen">
-            <div id="game-over-navbar">
-                <div id="gameroom-id"></div>
-            </div>
             <h1 id="game-over-heading"></h1>
             <div id="game-over-message"></div>
-            <button id="main-menu-button" class="btn btn-primary">Back to Main Menu</button>
+            <button class="main-menu-button btn btn-primary">BACK TO MAIN MENU</button>
         </div>
     </div>
 

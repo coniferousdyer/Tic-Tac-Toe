@@ -19,28 +19,10 @@ const gameOverScreen = $("#game-over-screen");
 // Important global variables
 let previousScreen = "";
 
-//----------LISTENERS----------//
-
-// Setting up DOM listeners
-$("#create-button").click(createGame);
-$("#join-button").click(joinGame);
-$(".game-board-cell").click(playTurn);
-$("#main-menu-button").click(backToMainMenu);
-
-// Setting up event listeners
-socket.on('connect', () => { previousScreen = titleScreen; })
-socket.on("game-created", gameCreated);
-socket.on("room-unavailable", message => { alert(message); });
-socket.on('player-one-joined', playerOneJoined);
-socket.on('player-two-joined', playerTwoJoined);
-socket.on('turn-played', turnPlayed);
-socket.on("game-over", gameOver);
-socket.on("return-to-main-menu", returnToMainMenu);
-
-//-----------DOM LISTENER FUNCTIONS-----------//
+//----------DOM LISTENERS----------//
 
 // When start button is clicked
-function createGame() {
+$("#create-button").click(() => {
     const playerName = $("#player-name").val();
 
     if (playerName == "") {
@@ -49,10 +31,10 @@ function createGame() {
     }
 
     socket.emit("create-game", { playerName: playerName });
-}
+});
 
 // When join button is clicked
-function joinGame() {
+$("#join-button").click(() => {
     const playerName = $("#player-name").val();
     const roomID = $("#room-id").val();
 
@@ -67,10 +49,10 @@ function joinGame() {
     }
 
     socket.emit("join-game", { playerName: playerName, roomID: roomID });
-}
+});
 
 // When a cell is clicked
-function playTurn(event) {
+$(".game-board-cell").click(event => {
     // Checking if cell is already marked
     if ($(event.target).html() != "") {
         alert("Cell is already marked.");
@@ -81,26 +63,35 @@ function playTurn(event) {
     const roomID = $("#gameroom-id").html().split(" ")[2];
 
     socket.emit("play-turn", { socketID: socket.id, roomID: roomID, cellID: cellID });
-}
+});
 
-function backToMainMenu() {
-    const roomID = $("#gameroom-id").html().split(" ")[2];
-    socket.emit("back-to-main-menu", { socketID: socket.id, roomID: roomID });
-}
+// When the "Return to Main Menu" button is clicked
+$(".main-menu-button").click(() => {
+    socket.emit("back-to-main-menu");
+});
 
-//-----------EVENT LISTENER FUNCTIONS-----------//
+//----------EVENT LISTENERS----------//
+
+// Setting up event listeners
+socket.on('connect', () => {
+    previousScreen = titleScreen;
+});
 
 // Hiding irrelevant elements once game is created
-function gameCreated(data) {
+socket.on("game-created", data => {
     previousScreen.css("display", "none");
     waitingScreen.css("display", "flex");
     previousScreen = waitingScreen;
 
     $("#room-id-display").html(`Room ID: ${data.roomID}`);
-}
+});
+
+socket.on("alert-user", message => {
+    alert(message);
+});
 
 // Hiding irrelevant elements once player 1 joins
-function playerOneJoined(data) {
+socket.on('player-one-joined', data => {
     previousScreen.css("display", "none");
     gameScreen.css("display", "flex");
     previousScreen = gameScreen;
@@ -108,11 +99,15 @@ function playerOneJoined(data) {
     $("#player-one-name").html(data.playerName);
     $("#player-one-name").css({ "background-color": "green", "color": "white" });
     $("#player-two-name").html("You");
+    $("#player-two-name").css({ "background-color": "transparent", "color": "black" });
     $("#gameroom-id").html(`Room ID: ${data.roomID}`);
-}
+    $(".game-board-cell").html("");
+
+    alert(`You are playing against ${data.playerName}.`);
+});
 
 // Hiding irrelevant elements once player 2 joins
-function playerTwoJoined(data) {
+socket.on('player-two-joined', data => {
     previousScreen.css("display", "none");
     gameScreen.css("display", "flex");
     previousScreen = gameScreen;
@@ -120,11 +115,15 @@ function playerTwoJoined(data) {
     $("#player-one-name").html("You");
     $("#player-one-name").css({ "background-color": "green", "color": "white" });
     $("#player-two-name").html(data.playerName);
+    $("#player-two-name").css({ "background-color": "transparent", "color": "black" });
     $("#gameroom-id").html(`Room ID: ${data.roomID}`);
-}
+    $(".game-board-cell").html("");
+
+    alert(`${data.playerName} has joined the game.`);
+});
 
 // Updating the game board with the latest turn
-function turnPlayed(data) {
+socket.on('turn-played', data => {
     $(`#box-${data.cellID}`).html(data.symbol);
 
     if (data.turn == 1) {
@@ -135,18 +134,17 @@ function turnPlayed(data) {
         $("#player-one-name").css({ "background-color": "transparent", "color": "black" });
         $("#player-two-name").css({ "background-color": "green", "color": "white" });
     }
-}
+});
 
 // Displaying the winner
-function gameOver(data) {
+socket.on("game-over", data => {
     previousScreen.css("display", "none");
     gameOverScreen.css("display", "flex");
     previousScreen = gameOverScreen;
 
-    $("#gameroom-id").html(`Room ID: ${data.roomID}`);
-
     if (data.winner == "Draw") {
         $("#game-over-heading").html("It's a draw!");
+        $("#game-over-heading").css("color", "black");
         $("#game-over-message").html("Don't worry, you can always play again!");
     }
     else if (socket.id == data.socketID) {
@@ -159,9 +157,10 @@ function gameOver(data) {
         $("#game-over-heading").css("color", "red");
         $("#game-over-message").html("Better luck next time!");
     }
-}
+});
 
-function returnToMainMenu() {
+// Returning to main menu
+socket.on("return-to-main-menu", () => {
     previousScreen.css("display", "none");
     titleScreen.css("display", "flex");
     previousScreen = titleScreen;
@@ -169,4 +168,4 @@ function returnToMainMenu() {
     $("#player-one-name").css("background-color", "transparent");
     $("#player-two-name").css("background-color", "transparent");
     $(".game-board-cell").html("");
-}
+});
