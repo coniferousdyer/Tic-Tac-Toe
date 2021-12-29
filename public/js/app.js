@@ -25,7 +25,6 @@ let previousScreen = "";
 $("#create-button").click(createGame);
 $("#join-button").click(joinGame);
 $(".game-board-cell").click(playTurn);
-$("#restart-button").click(restartGame);
 $("#main-menu-button").click(backToMainMenu);
 
 // Setting up event listeners
@@ -36,6 +35,7 @@ socket.on('player-one-joined', playerOneJoined);
 socket.on('player-two-joined', playerTwoJoined);
 socket.on('turn-played', turnPlayed);
 socket.on("game-over", gameOver);
+socket.on("return-to-main-menu", returnToMainMenu);
 
 //-----------DOM LISTENER FUNCTIONS-----------//
 
@@ -83,12 +83,9 @@ function playTurn(event) {
     socket.emit("play-turn", { socketID: socket.id, roomID: roomID, cellID: cellID });
 }
 
-function restartGame() {
-    socket.emit("restart-game", { socketID: socket.id });
-}
-
 function backToMainMenu() {
-    socket.emit("back-to-main-menu", { socketID: socket.id });
+    const roomID = $("#gameroom-id").html().split(" ")[2];
+    socket.emit("back-to-main-menu", { socketID: socket.id, roomID: roomID });
 }
 
 //-----------EVENT LISTENER FUNCTIONS-----------//
@@ -146,6 +143,8 @@ function gameOver(data) {
     gameOverScreen.css("display", "flex");
     previousScreen = gameOverScreen;
 
+    $("#gameroom-id").html(`Room ID: ${data.roomID}`);
+
     if (data.winner == "Draw") {
         $("#game-over-heading").html("It's a draw!");
         $("#game-over-message").html("Don't worry, you can always play again!");
@@ -160,4 +159,14 @@ function gameOver(data) {
         $("#game-over-heading").css("color", "red");
         $("#game-over-message").html("Better luck next time!");
     }
+}
+
+function returnToMainMenu() {
+    previousScreen.css("display", "none");
+    titleScreen.css("display", "flex");
+    previousScreen = titleScreen;
+
+    $("#player-one-name").css("background-color", "transparent");
+    $("#player-two-name").css("background-color", "transparent");
+    $(".game-board-cell").html("");
 }

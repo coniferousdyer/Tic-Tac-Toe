@@ -45,6 +45,7 @@ io.on('connection', socket => {
     // TODO: Handle another user joining after one has left
     // TODO: Add types to arguments
     // TODO: Handle wrong user clicking on cell
+    // TODO: Add feature to restart game
 
     // Creating a new game
     socket.on('create-game', data => {
@@ -89,19 +90,21 @@ io.on('connection', socket => {
             if (games[data.roomID].checkWin(games[data.roomID].playerOne.symbol, data.cellID)) {
                 socket.to(data.roomID).emit('game-over', {
                     winner: games[data.roomID].playerOne.name,
+                    roomID: data.roomID,
                     socketID: data.socketID
                 });
 
                 socket.emit('game-over', {
                     winner: games[data.roomID].playerOne.name,
+                    roomID: data.roomID,
                     socketID: data.socketID
                 });
 
                 return;
             }
             else if (games[data.roomID].checkDraw()) {
-                socket.to(data.roomID).emit('game-over', { winner: "Draw" });
-                socket.emit('game-over', { winner: "Draw" });
+                socket.to(data.roomID).emit('game-over', { winner: "Draw", roomID: data.roomID });
+                socket.emit('game-over', { winner: "Draw", roomID: data.roomID });
                 return;
             }
 
@@ -126,19 +129,21 @@ io.on('connection', socket => {
             if (games[data.roomID].checkWin(games[data.roomID].playerTwo.symbol, data.cellID)) {
                 socket.to(data.roomID).emit('game-over', {
                     winner: games[data.roomID].playerTwo.name,
+                    roomID: data.roomID,
                     socketID: data.socketID
                 });
 
                 socket.emit('game-over', {
                     winner: games[data.roomID].playerTwo.name,
+                    roomID: data.roomID,
                     socketID: data.socketID
                 });
 
                 return;
             }
             else if (games[data.roomID].checkDraw()) {
-                socket.to(data.roomID).emit('game-over', { winner: "Draw" });
-                socket.emit('game-over', { winner: "Draw" });
+                socket.to(data.roomID).emit('game-over', { winner: "Draw", roomID: data.roomID });
+                socket.emit('game-over', { winner: "Draw", roomID: data.roomID });
                 return;
             }
 
@@ -156,9 +161,30 @@ io.on('connection', socket => {
         }
     });
 
-    // Restarting the game
-    socket.on('restart-game', data => {
-        games[data.roomID].restart();
+    // When a player goes back to the main menu
+    socket.on("back-to-main-menu", data => {
+        socket.leave(data.roomID);
+
+        if (games[data.roomID].playerOne && games[data.roomID].playerTwo) {
+            if (games[data.roomID].playerOne.socketID == data.socketID)
+                games[data.roomID].playerOne = null;
+            else
+                games[data.roomID].playerTwo = null;
+        }
+        else if (games[data.roomID].playerOne) {
+            if (games[data.roomID].playerOne.socketID == data.socketID)
+                games[data.roomID].playerOne = null;
+
+            delete games[data.roomID];
+        }
+        else if (games[data.roomID].playerTwo) {
+            if (games[data.roomID].playerTwo.socketID == data.socketID)
+                games[data.roomID].playerTwo = null;
+
+            delete games[data.roomID];
+        }
+
+        socket.emit("return-to-main-menu");
     });
 });
 

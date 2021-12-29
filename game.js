@@ -67,12 +67,6 @@ class Game {
 
         return true;
     }
-
-    // Restarts the game
-    restart() {
-        this.board = [[null, null, null], [null, null, null], [null, null, null]];
-        this.turn = 1;
-    }
 }
 
 module.exports = {
