@@ -23,12 +23,15 @@ let previousScreen = "";
 // Setting up DOM listeners
 $("#create-button").click(createGame);
 $("#join-button").click(joinGame);
+$(".game-board-cell").click(playTurn);
 
 // Setting up event listeners
 socket.on('connect', () => { previousScreen = titleScreen; })
 socket.on("game-created", gameCreated);
+socket.on("room-unavailable", message => { alert(message); });
 socket.on('player-one-joined', playerOneJoined);
 socket.on('player-two-joined', playerTwoJoined);
+socket.on('turn-played', turnPlayed);
 
 //-----------DOM LISTENER FUNCTIONS-----------//
 
@@ -59,9 +62,21 @@ function joinGame() {
         return;
     }
 
-    // TODO: Validate room ID
-
     socket.emit("join-game", { playerName: playerName, roomID: roomID });
+}
+
+// When a cell is clicked
+function playTurn(event) {
+    // Checking if cell is already marked
+    if ($(event.target).html() != "") {
+        alert("Cell is already marked.");
+        return;
+    }
+
+    const cellID = event.target.id.split("-")[1];
+    const roomID = $("#gameroom-id").html().split(" ")[2];
+
+    socket.emit("play-turn", { socketID: socket.id, roomID: roomID, cellID: cellID });
 }
 
 //-----------EVENT LISTENER FUNCTIONS-----------//
@@ -82,6 +97,7 @@ function playerOneJoined(data) {
     previousScreen = gameScreen;
 
     $("#player-one-name").html(data.playerName);
+    $("#player-one-name").css({ "background-color": "green", "color": "white" });
     $("#player-two-name").html("You");
     $("#gameroom-id").html(`Room ID: ${data.roomID}`);
 }
@@ -93,6 +109,21 @@ function playerTwoJoined(data) {
     previousScreen = gameScreen;
 
     $("#player-one-name").html("You");
+    $("#player-one-name").css({ "background-color": "green", "color": "white" });
     $("#player-two-name").html(data.playerName);
     $("#gameroom-id").html(`Room ID: ${data.roomID}`);
+}
+
+// Updating the game board with the latest turn
+function turnPlayed(data) {
+    $(`#box-${data.cellID}`).html(data.symbol);
+
+    if (data.turn == 1) {
+        $("#player-one-name").css({ "background-color": "green", "color": "white" });
+        $("#player-two-name").css({ "background-color": "transparent", "color": "black" });
+    }
+    else {
+        $("#player-one-name").css({ "background-color": "transparent", "color": "black" });
+        $("#player-two-name").css({ "background-color": "green", "color": "white" });
+    }
 }

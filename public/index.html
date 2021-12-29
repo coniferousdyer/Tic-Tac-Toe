@@ -19,7 +19,7 @@
     <div class="container">
         <div id="title-screen">
             <h1 id="heading">TIC-TAC-TOE</h1>
-            <input type="text" id="player-name" placeholder="Enter username">
+            <input type="text" id="player-name" placeholder="Enter username" maxlength="10">
             <button id="create-button" class="btn btn-primary">Create Game</button>
             <input type="text" id="room-id" placeholder="Enter room ID">
             <button id="join-button" class="btn btn-primary">Join Game</button>
@@ -37,6 +37,23 @@
                 <div id="player-one-name"></div>
                 <div id="gameroom-id"></div>
                 <div id="player-two-name"></div>
+            </div>
+            <div id="game-board">
+                <div class="row">
+                    <div class="col-3 game-board-cell" id="box-1"></div>
+                    <div class="col-3 game-board-cell" id="box-2"></div>
+                    <div class="col-3 game-board-cell" id="box-3"></div>
+                </div>
+                <div class="row">
+                    <div class="col-3 game-board-cell" id="box-4"></div>
+                    <div class="col-3 game-board-cell" id="box-5"></div>
+                    <div class="col-3 game-board-cell" id="box-6"></div>
+                </div>
+                <div class="row">
+                    <div class="col-3 game-board-cell" id="box-7"></div>
+                    <div class="col-3 game-board-cell" id="box-8"></div>
+                    <div class="col-3 game-board-cell" id="box-9"></div>
+                </div>
             </div>
         </div>
     </div>

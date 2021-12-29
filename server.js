@@ -10,6 +10,7 @@
 const express = require('express');
 const socketio = require('socket.io');
 const http = require('http');
+const game = require('./game');
 
 // Storing port number
 const PORT = process.env.PORT || 3000;
@@ -29,8 +30,8 @@ server.listen(PORT, () => {
 // Initializing socket
 const io = socketio(server);
 
-// Dictionary of names of Player 1s and room IDs
-let playerOnes = {};
+// Dictionary of games in progress with room IDs
+let games = {};
 
 // Opening a socket connection and setting up event listeners
 io.on('connection', socket => {
@@ -40,20 +41,75 @@ io.on('connection', socket => {
     socket.on('disconnect', () => { console.log("Client disconnected!"); });
 
     // TODO: Handle user disconnecting from game
+    // TODO: Handle user reconnecting to game
+    // TODO: Add types to arguments
+    // TODO: Handle wrong user clicking on cell
 
     // Creating a new game
     socket.on('create-game', data => {
         const roomID = makeid(5); // Generating a random room ID
         socket.join(roomID);
-        playerOnes[roomID] = data.playerName;
+        let player = new game.Player(socket.id, data.playerName, "X");
+        games[roomID] = new game.Game(player, null, roomID, 1);
+
         socket.emit("game-created", { playerName: data.playerName, roomID: roomID });
     });
 
     // Joining an existing room
     socket.on('join-game', data => {
+        // Checking if room with entered ID exists
+        if (!(data.roomID in games)) {
+            socket.emit("room-unavailable", `Room with ID ${data.roomID} does not exist.`);
+            return;
+        }
+
+        // Checking if room is full
+        if (games[data.roomID].playerTwo != null) {
+            socket.emit("room-unavailable", `Room with ID ${data.roomID} is full.`);
+            return;
+        }
+
         socket.join(data.roomID);
-        socket.emit('player-one-joined', { playerName: playerOnes[data.roomID], roomID: data.roomID });
+        let player = new game.Player(socket.id, data.playerName, "O");
+        games[data.roomID].playerTwo = player;
+
+        socket.emit('player-one-joined', { playerName: games[data.roomID].playerOne.name, roomID: data.roomID });
         socket.to(data.roomID).emit('player-two-joined', { playerName: data.playerName, roomID: data.roomID });
+    });
+
+    // When a player plays a turn
+    socket.on('play-turn', data => {
+        // If it is player 1's turn
+        if (games[data.roomID].turn == 1 && games[data.roomID].playerOne.socketID == data.socketID) {
+            games[data.roomID].turn = 2;
+
+            socket.to(data.roomID).emit('turn-played', {
+                turn: 2,
+                cellID: data.cellID,
+                symbol: games[data.roomID].playerOne.symbol
+            });
+
+            socket.emit('turn-played', {
+                turn: 2,
+                cellID: data.cellID,
+                symbol: games[data.roomID].playerOne.symbol
+            });
+        }
+        // If it is player 2's turn
+        else if (games[data.roomID].turn == 2 && games[data.roomID].playerTwo.socketID == data.socketID) {
+            games[data.roomID].turn = 1;
+            socket.to(data.roomID).emit('turn-played', {
+                turn: 1,
+                cellID: data.cellID,
+                symbol: games[data.roomID].playerTwo.symbol
+            });
+
+            socket.emit('turn-played', {
+                turn: 1,
+                cellID: data.cellID,
+                symbol: games[data.roomID].playerTwo.symbol
+            });
+        }
     });
 });
 

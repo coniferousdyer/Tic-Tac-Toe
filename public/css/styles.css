@@ -74,8 +74,32 @@ body {
 
 #player-one-name {
     margin-left: 3vw;
+    padding: 1vw;
+    border-radius: 0.3vw;
 }
 
 #player-two-name {
     margin-right: 3vw;
+    padding: 1vw;
+    border-radius: 0.3vw;
+}
+
+#game-board {
+    width: 80%;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-board-cell {
+    border: 0.1vw solid black;
+    height: 10vw;
+    width: 10vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3vw;
+    cursor: pointer;
 }
