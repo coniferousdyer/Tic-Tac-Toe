@@ -1,0 +1,48 @@
+.main-menu-button {
+    margin-top: 5vw;
+}
+
+/* Title screen styles */
+
+#title-screen #heading {
+    font-size: 10vw;
+}
+
+#title-screen input {
+    padding: 2vw;
+    margin-top: 5vw;
+}
+
+#title-screen button {
+    margin-top: 5vw;
+}
+
+/* Waiting screen styles */
+
+#waiting-heading {
+    font-size: 8vw;
+}
+
+/* Game screen styles */
+
+#player-one-name {
+    padding: 2vw;
+    border-radius: 1vw;
+}
+
+#player-two-name {
+    padding: 2vw;
+    border-radius: 1vw;
+}
+
+.game-board-cell {
+    height: 20vw;
+    width: 20vw;
+    font-size: 6vw;
+}
+
+/* Game over screen styles */
+
+#game-over-heading {
+    font-size: 8vw;
+}
